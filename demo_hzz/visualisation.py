@@ -26,7 +26,8 @@ def _accuracy(y_true, y_pred):
 
 def _draw_boundary(ax, predict_fn, X_train, X_test, y_test,
                    feat_x, feat_y, feat_means,
-                   x_range, y_range, title):
+                   x_range, y_range, title,
+                   feature_names=None, feature_units=None):
     """
     在 (feat_x, feat_y) 二维截面画决策边界。
     其余特征固定为训练集均值。
@@ -68,8 +69,14 @@ def _draw_boundary(ax, predict_fn, X_train, X_test, y_test,
 
     test_acc = _accuracy(y_test, test_preds)
     ax.set_title(f"{title}\n测试准确率 {test_acc:.1%}", fontsize=10, pad=6)
-    ax.set_xlabel("m_vis [GeV]", fontsize=9)
-    ax.set_ylabel("MET [GeV]",   fontsize=9)
+    if feature_names is not None:
+        xu = (feature_units[feat_x] if feature_units else "")
+        yu = (feature_units[feat_y] if feature_units else "")
+        ax.set_xlabel(feature_names[feat_x] + (f" [{xu}]" if xu else ""), fontsize=9)
+        ax.set_ylabel(feature_names[feat_y] + (f" [{yu}]" if yu else ""), fontsize=9)
+    else:
+        ax.set_xlabel(f"特征 {feat_x}", fontsize=9)
+        ax.set_ylabel(f"特征 {feat_y}", fontsize=9)
     ax.tick_params(labelsize=8)
     ax.grid(True, ls="--", lw=0.35, alpha=0.45)
 
@@ -96,8 +103,8 @@ def plot_main_figure(
     overfit_depths, train_accs, test_accs,
     ada_train_acc, ada_test_acc,
     feature_names, feature_units,
-    feat_x=3, feat_y=2,       # m_vis, MET
-    x_range=(5, 200), y_range=(3, 140),
+    feat_x=3, feat_y=2,       # m_ll, MET
+    x_range=(20, 160), y_range=(2, 120),
 ):
     """
     主图布局：
@@ -124,7 +131,9 @@ def plot_main_figure(
         ax = fig.add_subplot(gs[0, col])
         _draw_boundary(ax, pred_fn, X_train, X_test, y_test,
                        feat_x, feat_y, feat_means,
-                       x_range, y_range, label)
+                       x_range, y_range, label,
+                       feature_names=feature_names,
+                       feature_units=feature_units)
 
     # ── 下左：过拟合曲线（占左侧 n_models-2 列）────────────────────────
     span_ov = max(n_models - 2, 2)
@@ -182,7 +191,7 @@ def plot_main_figure(
         ax.grid(True, ls="--", lw=0.35, alpha=0.45)
 
     fig.suptitle(
-        "H → τ_lep τ_had  信号/本底分类  |  单棵决策树过拟合 vs AdaBoost 泛化",
+        "Z → l+l-  信号/本底分类  |  单棵决策树过拟合 vs AdaBoost 泛化",
         fontsize=12, y=1.005
     )
     plt.tight_layout()

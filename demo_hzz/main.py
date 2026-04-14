@@ -1,12 +1,12 @@
 """
 ╔══════════════════════════════════════════════════════════════════════╗
-║    BDT Demo 3 - H → τ_lep τ_had  信号/本底分类（纯 Python）          ║
+║    BDT Demo 3 - Z → l+l-  信号/本底分类（纯 Python）                 ║
 ║                                                                      ║
 ║  核心教学目标：                                                        ║
 ║    1. 单棵深决策树如何过拟合物理数据（训练好、测试差）                    ║
 ║    2. 过拟合曲线：depth vs 训练/测试准确率（bias-variance 权衡）         ║
 ║    3. AdaBoost 的泛化优势与特征重要性                                   ║
-║    4. 决策边界：直观展示深树在 m_vis-MET 空间的过复杂边界               ║
+║    4. 决策边界：直观展示深树在 m_ll-MET 空间的过复杂边界                ║
 ╚══════════════════════════════════════════════════════════════════════╝
 """
 
@@ -14,7 +14,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from dataset      import (generate_hzz_dataset, train_test_split,
+from dataset      import (generate_zll_dataset, train_test_split,
                            FEATURE_NAMES, FEATURE_UNITS, FEAT_X, FEAT_Y)
 from decision_tree import (build_tree, predict_tree, accuracy,
                             confusion_matrix, print_confusion_matrix,
@@ -52,19 +52,19 @@ BOUNDARY_DEPTHS = [2, 5, 10]   # 在图上展示这些深度的单树边界
 def main():
     print()
     print("╔══════════════════════════════════════════════════════════════╗")
-    print("║    BDT Demo 3 - H → τ_lep τ_had  信号/本底分类              ║")
+    print("║    BDT Demo 3 - Z → l+l-  信号/本底分类                     ║")
     print("╚══════════════════════════════════════════════════════════════╝")
 
     # ── Step 1：生成数据 ───────────────────────────────────────────────
-    print("\n【Step 1】蒙特卡洛生成 H → τ_lep τ_had 数据集")
+    print("\n【Step 1】蒙特卡洛生成 Z → l+l- 数据集")
     print(f"  事例数: {N_SAMPLES}  信号占比: {SIG_FRACTION*100:.0f}%  "
           f"标签噪声: {NOISE*100:.0f}%  测试集: {TEST_RATIO*100:.0f}%")
     print("  特征列表：")
     for i, (n, u) in enumerate(zip(FEATURE_NAMES, FEATURE_UNITS)):
-        disc = "★ 强判别力" if i in (FEAT_X, FEAT_Y, 1) else "  弱判别力"
+        disc = "★ 强判别力" if i in (FEAT_X, FEAT_Y) else "  弱判别力"
         print(f"    [{i}] {n:<12s} {('['+u+']') if u else '':6s}  {disc}")
 
-    X, y = generate_hzz_dataset(N_SAMPLES, SIG_FRACTION, NOISE)
+    X, y = generate_zll_dataset(N_SAMPLES, SIG_FRACTION, NOISE)
     X_train, y_train, X_test, y_test = train_test_split(X, y, TEST_RATIO)
 
     n_sig_tr = sum(1 for yi in y_train if yi ==  1)
@@ -145,7 +145,7 @@ def main():
     max_imp = max(imp)
     for i, (name, unit, v) in enumerate(zip(FEATURE_NAMES, FEATURE_UNITS, imp)):
         bar  = "▓" * int(v / max_imp * 30)
-        mark = "★" if i in (FEAT_X, FEAT_Y, 1) else " "
+        mark = "★" if i in (FEAT_X, FEAT_Y) else " "
         print(f"  {mark} [{i}] {name:<12s}  {v:.4f}  {bar}")
 
     # ── 可视化 ─────────────────────────────────────────────────────────
